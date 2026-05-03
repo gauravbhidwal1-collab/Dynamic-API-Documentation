@@ -1,15 +1,19 @@
+# Build stage
+FROM maven:3.8.5-openjdk-8 AS build
 
-# Use Java 8 base image
-FROM openjdk:8-jdk-alpine
-
-# Set working directory
 WORKDIR /app
 
-# Copy jar file
-COPY target/apiDocBackendApis.jar app.jar
+COPY . .
 
-# Expose port
+RUN mvn clean package -DskipTests
+
+# Run stage
+FROM openjdk:8-jdk-alpine
+
+WORKDIR /app
+
+COPY --from=build /app/target/apiDocBackendApis.jar app.jar
+
 EXPOSE 8080
 
-# Run application
 ENTRYPOINT ["java","-jar","/app/app.jar"]
