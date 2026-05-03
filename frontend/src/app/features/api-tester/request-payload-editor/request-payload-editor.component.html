@@ -1,0 +1,78 @@
+<div class="payload" [formGroup]="formGroup">
+  @for (field of sorted(fields); track field.fieldKey) {
+    @switch (kind(field)) {
+      @case ('leaf') {
+        @if (leafInputType(field) === 'checkbox') {
+          <div class="payload__row payload__row--bool">
+            <mat-checkbox [formControlName]="field.fieldKey">
+              {{ field.fieldKey }}
+              @if (field.required) {
+                <span class="payload__req">*</span>
+              }
+            </mat-checkbox>
+            @if (field.description) {
+              <span class="payload__desc">{{ field.description }}</span>
+            }
+          </div>
+        } @else {
+          <mat-form-field appearance="outline" class="payload__field">
+            <mat-label>
+              {{ field.fieldKey }}
+              @if (field.required) {
+                <span class="payload__req">*</span>
+              }
+            </mat-label>
+            @if (leafInputType(field) === 'number') {
+              <input
+                matInput
+                type="number"
+                [step]="numberStep(field)"
+                [formControlName]="field.fieldKey"
+                [attr.inputmode]="norm(field.dataType) === 'INTEGER' || norm(field.dataType) === 'INT' || norm(field.dataType) === 'LONG' ? 'numeric' : 'decimal'"
+              />
+            } @else {
+              <input matInput type="text" [formControlName]="field.fieldKey" />
+            }
+            @if (field.description) {
+              <mat-hint>{{ field.description }}</mat-hint>
+            }
+            <mat-hint align="end">{{ norm(field.dataType) }}</mat-hint>
+          </mat-form-field>
+        }
+      }
+      @case ('object') {
+        <fieldset class="payload__block">
+          <legend>{{ field.fieldKey }} <span class="payload__type">object</span></legend>
+          @if (field.description) {
+            <p class="payload__desc">{{ field.description }}</p>
+          }
+          <app-request-payload-editor [formGroup]="childGroup(field)" [fields]="field.children || []" />
+        </fieldset>
+      }
+      @case ('array') {
+        <fieldset class="payload__block payload__block--array">
+          <legend>{{ field.fieldKey }} <span class="payload__type">array</span></legend>
+          @if (field.description) {
+            <p class="payload__desc">{{ field.description }}</p>
+          }
+          <div [formArrayName]="field.fieldKey">
+            @for (_ctrl of arrayField(field).controls; track $index; let i = $index) {
+              <div class="payload__array-row">
+                <div class="payload__array-row-inner" [formGroupName]="i">
+                  <app-request-payload-editor [formGroup]="rowGroup(field, i)" [fields]="field.children || []" />
+                </div>
+                <button mat-icon-button type="button" (click)="removeArrayRow(field, i)" matTooltip="Remove row">
+                  <mat-icon>remove_circle_outline</mat-icon>
+                </button>
+              </div>
+            }
+          </div>
+          <button mat-stroked-button type="button" class="payload__add" (click)="addArrayRow(field)">
+            <mat-icon>add</mat-icon>
+            Add item
+          </button>
+        </fieldset>
+      }
+    }
+  }
+</div>

@@ -1,0 +1,95 @@
+// Include theming for Angular Material with `mat.theme()`.
+// This Sass mixin will define CSS variables that are used for styling Angular Material
+// components according to the Material 3 design spec.
+// Learn more about theming and how to use it for your application's
+// custom components at https://material.angular.dev/guide/theming
+@use '@angular/material' as mat;
+
+html {
+  height: 100%;
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$azure-palette,
+        tertiary: mat.$blue-palette,
+      ),
+      typography: Roboto,
+      density: 0,
+    )
+  );
+}
+
+body {
+  // Default the application to a light color theme. This can be changed to
+  // `dark` to enable the dark color theme, or to `light dark` to defer to the
+  // user's system settings.
+  color-scheme: light;
+
+  // Set a default background, font and text colors for the application using
+  // Angular Material's system-level CSS variables. Learn more about these
+  // variables at https://material.angular.dev/guide/system-variables
+  background-color: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+
+  // Reset the user agent margin.
+  margin: 0;
+  height: 100%;
+}
+
+.app-page-card {
+  margin-bottom: 0;
+}
+
+.app-loading-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  min-height: 10rem;
+  padding: 1.5rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.app-loading-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mat-mdc-snack-bar-container.app-toast {
+  &.app-toast--success .mat-mdc-snack-bar-label {
+    color: var(--mat-sys-on-primary-container);
+  }
+  &.app-toast--success {
+    --mat-snack-bar-button-color: var(--mat-sys-on-primary-container);
+    background-color: color-mix(in srgb, var(--mat-sys-primary) 18%, var(--mat-sys-surface));
+    border-inline-start: 4px solid var(--mat-sys-primary);
+  }
+  &.app-toast--error {
+    --mat-snack-bar-button-color: var(--mat-sys-on-error-container);
+    background-color: color-mix(in srgb, var(--mat-sys-error) 14%, var(--mat-sys-surface));
+    border-inline-start: 4px solid var(--mat-sys-error);
+  }
+  &.app-toast--info {
+    border-inline-start: 4px solid var(--mat-sys-tertiary);
+    background-color: var(--mat-sys-surface-container-high);
+  }
+  &.app-toast--warn {
+    border-inline-start: 4px solid var(--mat-sys-error);
+    background-color: color-mix(in srgb, var(--mat-sys-error) 8%, var(--mat-sys-surface));
+  }
+}
+
+/* Cleaner browser print / Save as PDF (e.g. User guide) */
+@media print {
+  .shell__nav,
+  .shell__toolbar {
+    display: none !important;
+  }
+
+  .shell__main {
+    max-width: none;
+    padding: 0.5rem 1rem 1rem;
+  }
+}

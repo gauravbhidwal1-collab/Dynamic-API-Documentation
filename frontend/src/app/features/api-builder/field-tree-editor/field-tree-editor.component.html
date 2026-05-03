@@ -1,0 +1,66 @@
+<div class="tree" [class.tree--nested]="depth > 0">
+  <div class="tree__toolbar">
+    <button mat-stroked-button type="button" (click)="addField()">
+      <mat-icon>add</mat-icon>
+      Add field
+    </button>
+  </div>
+
+  @for (ctrl of fields.controls; track $index; let i = $index) {
+    <div class="tree__node" [formGroup]="asGroup(ctrl)">
+      <div class="tree__row">
+        <mat-form-field appearance="outline" class="tree__field tree__field--name">
+          <mat-label>Input parameter</mat-label>
+          <input matInput formControlName="fieldName" placeholder="e.g. userId" maxlength="255" />
+          @if (asGroup(ctrl).get('fieldName')?.hasError('required') && asGroup(ctrl).get('fieldName')?.touched) {
+            <mat-error>Required</mat-error>
+          }
+          @if (asGroup(ctrl).get('fieldName')?.hasError('maxlength')) {
+            <mat-error>Max 255 characters</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="tree__field tree__field--type">
+          <mat-label>Data type</mat-label>
+          <mat-select formControlName="dataType">
+            @for (t of dataTypes; track t) {
+              <mat-option [value]="t">{{ t }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="tree__field tree__field--desc">
+          <mat-label>Value description</mat-label>
+          <textarea
+            matInput
+            formControlName="description"
+            rows="2"
+            placeholder="Meaning, format, or validation notes"
+            maxlength="4000"
+          ></textarea>
+        </mat-form-field>
+
+        <div class="tree__mandatory">
+          <mat-checkbox formControlName="mandatory">Mandatory</mat-checkbox>
+        </div>
+
+        <mat-form-field appearance="outline" class="tree__field tree__field--sample">
+          <mat-label>Sample / default</mat-label>
+          <input matInput formControlName="sampleValue" placeholder="Default for tests (JSON literal if needed)" />
+        </mat-form-field>
+
+        <button mat-icon-button type="button" (click)="removeField(i)" aria-label="Remove field">
+          <mat-icon>delete_outline</mat-icon>
+        </button>
+      </div>
+
+      <div class="tree__nested">
+        <div class="tree__nested-head">
+          <span class="tree__nested-label">Nested fields</span>
+          <span class="tree__hint">Use OBJECT / ARRAY parents to model JSON trees.</span>
+        </div>
+        <app-field-tree-editor [fields]="childrenAt(i)" [depth]="depth + 1" />
+      </div>
+    </div>
+  }
+</div>

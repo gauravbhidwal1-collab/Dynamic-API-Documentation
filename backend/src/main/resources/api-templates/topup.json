@@ -1,0 +1,94 @@
+{
+  "name": "Wallet Top-Up",
+  "apiCode": "walletTopUp",
+  "version": "v1",
+  "description": "Top-up a customer wallet: amount, currency, and mobile identifier. Adjust base URL and path for your environment.",
+  "httpMethod": "POST",
+  "baseUrl": "https://api.example.com",
+  "pathTemplate": "/v1/wallet/topup",
+  "active": true,
+  "activitiesSequenceText": "- Validate customer and limits\n- Post ledger entry\n- Notify customer",
+  "additionalNotesText": "Idempotency-Key header recommended for retries.",
+  "impactOnSystemText": "Updates wallet balance and triggers downstream settlement.",
+  "documentedHeaders": [
+    {
+      "headerKey": "Idempotency-Key",
+      "headerValue": "uuid-v4",
+      "description": "Unique key per business request"
+    }
+  ],
+  "failureValidations": [
+    {
+      "validationMessage": "Amount exceeds daily limit",
+      "scenario": "When cumulative top-up for MSISDN > configured cap"
+    }
+  ],
+  "requestFields": [
+    {
+      "fieldKey": "mobileNumber",
+      "dataType": "STRING",
+      "required": true,
+      "defaultValue": "919876543210",
+      "description": "Customer MSISDN (country code + number)",
+      "sortOrder": 0,
+      "children": []
+    },
+    {
+      "fieldKey": "amount",
+      "dataType": "NUMBER",
+      "required": true,
+      "defaultValue": "100.00",
+      "description": "Top-up amount in major currency units",
+      "sortOrder": 1,
+      "children": []
+    },
+    {
+      "fieldKey": "currency",
+      "dataType": "STRING",
+      "required": true,
+      "defaultValue": "INR",
+      "description": "ISO 4217 currency code",
+      "sortOrder": 2,
+      "children": []
+    }
+  ],
+  "responseFields": [
+    {
+      "fieldKey": "transactionId",
+      "dataType": "STRING",
+      "description": "Unique transaction reference",
+      "sortOrder": 0,
+      "children": []
+    },
+    {
+      "fieldKey": "status",
+      "dataType": "STRING",
+      "description": "SUCCESS | PENDING | FAILED",
+      "sortOrder": 1,
+      "children": []
+    },
+    {
+      "fieldKey": "message",
+      "dataType": "STRING",
+      "description": "Human-readable outcome",
+      "sortOrder": 2,
+      "children": []
+    }
+  ],
+  "failureResponseFields": [
+    {
+      "fieldKey": "errorCode",
+      "dataType": "STRING",
+      "description": "Machine-readable error code",
+      "sortOrder": 0,
+      "children": []
+    },
+    {
+      "fieldKey": "errorMessage",
+      "dataType": "STRING",
+      "description": "Failure reason",
+      "sortOrder": 1,
+      "children": []
+    }
+  ]
+}

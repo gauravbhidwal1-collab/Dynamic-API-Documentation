@@ -1,0 +1,219 @@
+<div class="user-guide">
+  <mat-card appearance="outlined" class="app-page-card user-guide__hero">
+    <mat-card-header>
+      <mat-card-title>User guide</mat-card-title>
+      <mat-card-subtitle>
+        How to use the API Documentation Platform: where each screen is, what it does, and a typical workflow from
+        defining an API to testing and exporting PDFs.
+      </mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="user-guide__toolbar no-print">
+        <button mat-stroked-button type="button" (click)="printOrSavePdf()">
+          <mat-icon>picture_as_pdf</mat-icon>
+          Print or save as PDF
+        </button>
+        <span class="user-guide__toolbar-hint">
+          Uses your browser’s print dialog — choose “Save as PDF” to download a copy of this guide.
+        </span>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card appearance="outlined" class="app-page-card">
+    <mat-card-header>
+      <mat-card-title>1. Before you start</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <ol class="user-guide__list">
+        <li>
+          <strong>Backend (Spring Boot)</strong> must be running and reachable at
+          <code>{{ apiBaseUrl }}</code> (configured in <code>frontend/src/environments/environment.ts</code>).
+        </li>
+        <li>
+          <strong>This web app</strong> (Angular) is usually opened at
+          <code>http://localhost:9091</code> after <code>npm start</code> in the <code>frontend</code> folder.
+        </li>
+        <li>
+          If lists fail to load, confirm the backend URL, that the server is up, and that the browser is not blocking
+          requests (CORS is configured for typical local dev origins).
+        </li>
+      </ol>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card appearance="outlined" class="app-page-card">
+    <mat-card-header>
+      <mat-card-title>2. Where things are (left navigation)</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <table class="user-guide__table">
+        <thead>
+          <tr>
+            <th>Menu item</th>
+            <th>Route</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>API List</strong></td>
+            <td><code>/apis</code></td>
+            <td>See all saved API definitions, search and filter, open view/edit/test, delete.</td>
+          </tr>
+          <tr>
+            <td><strong>API Builder</strong></td>
+            <td><code>/builder</code></td>
+            <td>Create a new API or edit one: base URL, HTTP method, path template, description, request field tree.</td>
+          </tr>
+          <tr>
+            <td><strong>API Tester</strong></td>
+            <td><code>/tester</code></td>
+            <td>Pick an API, build the JSON body from the saved schema, then validate URL/body or execute the real call.</td>
+          </tr>
+          <tr>
+            <td><strong>PDF Viewer</strong></td>
+            <td><code>/pdf</code></td>
+            <td>Preview or download server-generated API documentation PDF for a given API id.</td>
+          </tr>
+          <tr>
+            <td><strong>User guide</strong></td>
+            <td><code>/guide</code></td>
+            <td>This help document.</td>
+          </tr>
+        </tbody>
+      </table>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card appearance="outlined" class="app-page-card">
+    <mat-card-header>
+      <mat-card-title>3. API List — browse and manage</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <ol class="user-guide__list">
+        <li>Open <a routerLink="/apis">API List</a> from the sidebar (default home).</li>
+        <li>
+          Use <strong>Search</strong> (name, code, URL, method), <strong>Status</strong> (active/inactive), and
+          <strong>HTTP method</strong> to narrow the table. Click <strong>Refresh</strong> to reload from the server.
+        </li>
+        <li>
+          <strong>View</strong> (eye icon): opens a read-only dialog with the full definition (request tree and
+          response structure).
+        </li>
+        <li>
+          <strong>Edit</strong> (pencil): opens <strong>API Builder</strong> with that API loaded for update.
+        </li>
+        <li>
+          <strong>Test</strong> (play icon): opens <strong>API Tester</strong> with that API pre-selected.
+        </li>
+        <li>
+          <strong>Delete</strong> (trash): asks for confirmation, then removes the definition from the backend.
+        </li>
+      </ol>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card appearance="outlined" class="app-page-card">
+    <mat-card-header>
+      <mat-card-title>4. API Builder — create or change a definition</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <ol class="user-guide__list">
+        <li>
+          Go to <a routerLink="/builder">API Builder</a>. For a new API, open <code>/builder</code> without query
+          parameters. To edit, use <strong>Edit</strong> from the list or open
+          <code>/builder?editId=1</code> (replace <code>1</code> with your API id).
+        </li>
+        <li>
+          <strong>Basics:</strong> set <strong>API name</strong>, <strong>URL (base)</strong> (must be
+          <code>http://</code> or <code>https://</code>), optional <strong>Path template</strong> (must start with
+          <code>/</code>), <strong>Method</strong>, <strong>Description</strong>, and <strong>Active</strong>.
+        </li>
+        <li>
+          <strong>Path placeholders:</strong> use curly braces in the path, e.g.
+          <code>&#123;fieldName&#125;</code>. The tester reads values from the JSON body using the same property names.
+          Example: path <code>/users/&#123;userId&#125;</code> needs a top-level <code>userId</code> field in the request
+          schema.
+        </li>
+        <li>
+          <strong>Dynamic request fields:</strong> add rows for each JSON property. Choose a <strong>data type</strong>
+          (STRING, INTEGER, BOOLEAN, OBJECT, ARRAY, etc.). Mark fields as mandatory if required. Optional
+          <strong>sample / default</strong> values are merged when you test with an empty or partial body.
+        </li>
+        <li>
+          Use <strong>Add field</strong> and nesting under <strong>OBJECT</strong> or <strong>ARRAY</strong> parents to
+          model nested JSON. Sibling names must be unique at each level.
+        </li>
+        <li>
+          <strong>Response body</strong> (optional): add output parameters and nested OBJECT/ARRAY fields so the PDF and
+          view dialog document the expected JSON response.
+        </li>
+        <li>Click <strong>Save</strong> (create) or <strong>Update</strong> (edit). Fix any validation messages shown on the form.</li>
+      </ol>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card appearance="outlined" class="app-page-card">
+    <mat-card-header>
+      <mat-card-title>5. API Tester — validate and run</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <ol class="user-guide__list">
+        <li>Open <a routerLink="/tester">API Tester</a> or jump from a row’s <strong>Test</strong> action.</li>
+        <li>
+          Choose an API in <strong>Select API</strong>. The form builds inputs from the saved request field tree (or
+          empty object if none).
+        </li>
+        <li>
+          <strong>Validate</strong>: checks the JSON against the schema, applies defaults, and shows the resolved URL
+          without calling the upstream system.
+        </li>
+        <li>
+          <strong>Execute</strong>: performs the real HTTP call (GET/DELETE send query parameters from scalar body
+          fields; POST/PUT/PATCH send the JSON body). Inactive APIs cannot be executed.
+        </li>
+        <li>Read the response status, body, and any error or timeout message shown below the actions.</li>
+      </ol>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card appearance="outlined" class="app-page-card">
+    <mat-card-header>
+      <mat-card-title>6. PDF Viewer — documentation export</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <ol class="user-guide__list">
+        <li>Open <a routerLink="/pdf">PDF Viewer</a>.</li>
+        <li>
+          Enter the numeric <strong>API id</strong> (the same id shown in the list and tester). The viewer loads the
+          PDF from <code>{{ pdfBackendPathExample }}</code> (replace the numeric id in the path).
+        </li>
+        <li>Use <strong>Download PDF</strong> to save the file, or rely on the embedded viewer controls.</li>
+        <li>
+          You can open the viewer with a pre-filled id using a URL like
+          <code>{{ pdfViewerQueryExample }}</code> (change the id at the end).
+        </li>
+      </ol>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card appearance="outlined" class="app-page-card">
+    <mat-card-header>
+      <mat-card-title>7. Suggested workflow</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <ol class="user-guide__list user-guide__list--workflow">
+        <li>Define the API in <strong>API Builder</strong> → <strong>Save</strong>.</li>
+        <li>Confirm it appears in <strong>API List</strong> and use <strong>View</strong> to verify fields.</li>
+        <li>Run <strong>Validate</strong> then <strong>Execute</strong> in <strong>API Tester</strong>.</li>
+        <li>Share <strong>PDF</strong> documentation from <strong>PDF Viewer</strong> for stakeholders.</li>
+      </ol>
+      <mat-divider />
+      <p class="user-guide__footer-note">
+        Tip: sample JSON bodies for <code>POST /api/create</code> are in the project <code>samples/</code> folder if you
+        prefer importing definitions via the backend API or tools such as Postman.
+      </p>
+    </mat-card-content>
+  </mat-card>
+</div>

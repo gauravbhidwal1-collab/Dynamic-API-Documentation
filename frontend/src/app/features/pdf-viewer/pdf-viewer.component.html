@@ -1,0 +1,57 @@
+<mat-card appearance="outlined" class="app-page-card">
+  <mat-card-header>
+    <mat-card-title>PDF Viewer</mat-card-title>
+    <mat-card-subtitle>Preview and download API documentation generated on the server.</mat-card-subtitle>
+  </mat-card-header>
+  <mat-card-content class="pdf-viewer__content">
+    <p>
+      Source: <code>GET /api/pdf/:apiId</code>. Deep link with <code>?apiId=</code>.
+    </p>
+
+    <form [formGroup]="form" class="pdf-viewer__form" (ngSubmit)="$event.preventDefault()">
+      <mat-form-field appearance="outline" class="pdf-viewer__field">
+        <mat-label>API definition id</mat-label>
+        <input matInput type="number" min="1" formControlName="apiId" />
+        <mat-hint align="end">Positive integer</mat-hint>
+        @if (form.controls.apiId.hasError('required') && form.controls.apiId.touched) {
+          <mat-error>Required</mat-error>
+        }
+        @if (form.controls.apiId.hasError('min') && form.controls.apiId.touched) {
+          <mat-error>Minimum value is 1</mat-error>
+        }
+      </mat-form-field>
+    </form>
+
+    <div class="pdf-viewer__actions">
+      <button mat-flat-button color="primary" type="button" (click)="downloadPdf()" [disabled]="downloadBusy()">
+        @if (downloadBusy()) {
+          <mat-progress-spinner diameter="18" mode="indeterminate" />
+        } @else {
+          <mat-icon>download</mat-icon>
+        }
+        Download PDF
+      </button>
+      <span class="pdf-viewer__hint">The viewer toolbar also includes a download control.</span>
+    </div>
+
+    @if (downloadError(); as de) {
+      <p class="pdf-viewer__banner pdf-viewer__banner--error">{{ de }}</p>
+    }
+
+    @if (viewerError(); as ve) {
+      <p class="pdf-viewer__banner pdf-viewer__banner--error">{{ ve }}</p>
+    }
+
+    <div class="pdf-viewer__viewer-wrap">
+      <ngx-extended-pdf-viewer
+        [src]="pdfUrl()"
+        [height]="'70vh'"
+        [showDownloadButton]="true"
+        [filenameForDownload]="downloadFilename()"
+        [textLayer]="true"
+        (pdfLoaded)="onPdfLoaded()"
+        (pdfLoadingFailed)="onPdfLoadingFailed($event)"
+      />
+    </div>
+  </mat-card-content>
+</mat-card>

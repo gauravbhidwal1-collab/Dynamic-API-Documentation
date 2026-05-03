@@ -1,0 +1,23 @@
+# Backend (Spring Boot / Maven)
+backend/target/
+backend/.idea/
+backend/*.iml
+backend/.project
+backend/.classpath
+backend/.settings/
+backend/*.log
+
+# Frontend (Angular / Node)
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/coverage/
+
+# Local / duplicate scaffold (not part of main app)
+final/
+
+# Root / OS
+.idea/
+*.iml
+.DS_Store
+*.log

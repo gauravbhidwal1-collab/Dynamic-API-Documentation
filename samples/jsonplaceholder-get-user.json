@@ -1,0 +1,77 @@
+{
+  "name": "Get user by ID (JSONPlaceholder demo)",
+  "apiCode": "demo-jsonplaceholder-get-user",
+  "description": "GET https://jsonplaceholder.typicode.com/users/{userId}. Path placeholder userId is taken from the JSON body (same pattern as the API tester). Remaining scalar fields become query parameters for GET.",
+  "httpMethod": "GET",
+  "baseUrl": "https://jsonplaceholder.typicode.com",
+  "pathTemplate": "/users/{userId}",
+  "active": true,
+  "requestFields": [
+    {
+      "fieldKey": "userId",
+      "dataType": "STRING",
+      "required": true,
+      "defaultValue": "1",
+      "description": "User id for path /users/{userId}",
+      "sortOrder": 0
+    }
+  ],
+  "responseFields": [
+    {
+      "fieldKey": "id",
+      "dataType": "INTEGER",
+      "description": "User id",
+      "sortOrder": 0
+    },
+    {
+      "fieldKey": "name",
+      "dataType": "STRING",
+      "description": "Full name",
+      "sortOrder": 1
+    },
+    {
+      "fieldKey": "username",
+      "dataType": "STRING",
+      "description": "Username",
+      "sortOrder": 2
+    },
+    {
+      "fieldKey": "email",
+      "dataType": "STRING",
+      "description": "Email",
+      "sortOrder": 3
+    },
+    {
+      "fieldKey": "address",
+      "dataType": "OBJECT",
+      "description": "Nested address from JSONPlaceholder",
+      "sortOrder": 4,
+      "children": [
+        {
+          "fieldKey": "street",
+          "dataType": "STRING",
+          "description": "Street",
+          "sortOrder": 0
+        },
+        {
+          "fieldKey": "suite",
+          "dataType": "STRING",
+          "description": "Suite",
+          "sortOrder": 1
+        },
+        {
+          "fieldKey": "city",
+          "dataType": "STRING",
+          "description": "City",
+          "sortOrder": 2
+        },
+        {
+          "fieldKey": "zipcode",
+          "dataType": "STRING",
+          "description": "Zip code",
+          "sortOrder": 3
+        }
+      ]
+    }
+  ]
+}

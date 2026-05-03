@@ -1,0 +1,218 @@
+<div class="dash">
+  <div class="dash__header">
+    <h1 class="dash__title">Execution logs</h1>
+    <p class="dash__subtitle">Metrics from <code>api_logs</code> — default range is the last 7 days when dates are empty.</p>
+  </div>
+
+  <mat-card class="dash__filters">
+    <mat-card-header>
+      <mat-card-title>Filters</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="filterForm" class="dash__filter-grid" (ngSubmit)="refresh()">
+        <mat-form-field appearance="outline" class="dash__field">
+          <mat-label>From</mat-label>
+          <input matInput type="datetime-local" formControlName="from" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="dash__field">
+          <mat-label>To</mat-label>
+          <input matInput type="datetime-local" formControlName="to" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="dash__field">
+          <mat-label>API</mat-label>
+          <mat-select formControlName="apiId">
+            <mat-option [value]="null">All APIs</mat-option>
+            @for (s of summaries(); track s.id) {
+              <mat-option [value]="s.id">{{ s.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="dash__field dash__field--grow">
+          <mat-label>API name contains</mat-label>
+          <input matInput formControlName="apiName" placeholder="Substring match" />
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+        <div class="dash__actions">
+          <button mat-flat-button color="primary" type="submit" [disabled]="loading()">
+            <mat-icon>filter_alt</mat-icon>
+            Apply
+          </button>
+          <button mat-stroked-button type="button" (click)="resetFilters()" [disabled]="loading()">
+            Reset
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  @if (errorMessage()) {
+    <p class="dash__error" role="alert">{{ errorMessage() }}</p>
+  }
+
+  @if (loading()) {
+    <div class="dash__loading">
+      <mat-progress-spinner mode="indeterminate" diameter="40" />
+      <span>Loading metrics…</span>
+    </div>
+  } @else if (data(); as d) {
+    <div class="dash__kpis">
+      <mat-card class="dash__kpi">
+        <mat-card-header>
+          <mat-card-title>Total requests</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <p class="dash__kpi-value">{{ d.totalRequests }}</p>
+        </mat-card-content>
+      </mat-card>
+      <mat-card class="dash__kpi">
+        <mat-card-header>
+          <mat-card-title>Avg response time</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <p class="dash__kpi-value">
+            {{ d.avgResponseTimeMs | number: '1.0-1' }}
+            <span class="dash__kpi-unit">ms</span>
+          </p>
+        </mat-card-content>
+      </mat-card>
+      <mat-card class="dash__kpi dash__kpi--wide">
+        <mat-card-header>
+          <mat-card-title>Success vs failure</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="dash__chart" aria-label="Success and failure share of requests">
+            <div
+              class="dash__chart-seg dash__chart-seg--ok"
+              [style.width.%]="successPct()"
+              [title]="'Success: ' + d.successCount"
+            ></div>
+            <div
+              class="dash__chart-seg dash__chart-seg--fail"
+              [style.width.%]="failurePct()"
+              [title]="'Failure: ' + d.failureCount"
+            ></div>
+          </div>
+          <div class="dash__legend">
+            <span class="dash__legend-item dash__legend-item--ok">
+              <span class="dash__dot"></span>
+              Success {{ d.successCount }} ({{ successPct() | number: '1.0-0' }}%)
+            </span>
+            <span class="dash__legend-item dash__legend-item--fail">
+              <span class="dash__dot"></span>
+              Failure {{ d.failureCount }} ({{ failurePct() | number: '1.0-0' }}%)
+            </span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    @if (performance(); as perf) {
+      <div class="dash__perf-row">
+        <mat-card class="dash__kpi">
+          <mat-card-header>
+            <mat-card-title>Min latency (range)</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <p class="dash__kpi-value">
+              @if (perf.minLatencyMs != null) {
+                {{ perf.minLatencyMs }}
+                <span class="dash__kpi-unit">ms</span>
+              } @else {
+                —
+              }
+            </p>
+          </mat-card-content>
+        </mat-card>
+        <mat-card class="dash__kpi">
+          <mat-card-header>
+            <mat-card-title>Avg latency (range)</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <p class="dash__kpi-value">
+              {{ perf.avgLatencyMs | number: '1.0-1' }}
+              <span class="dash__kpi-unit">ms</span>
+            </p>
+          </mat-card-content>
+        </mat-card>
+        <mat-card class="dash__kpi">
+          <mat-card-header>
+            <mat-card-title>Max latency (range)</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <p class="dash__kpi-value">
+              @if (perf.maxLatencyMs != null) {
+                {{ perf.maxLatencyMs }}
+                <span class="dash__kpi-unit">ms</span>
+              } @else {
+                —
+              }
+            </p>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <mat-card class="dash__perf-chart-card">
+        <mat-card-header>
+          <mat-card-title>Response time trend</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <p class="dash__chart-caption">
+            Chronological samples (up to 200) with recorded duration — same filters as above.
+          </p>
+          @if (latencyPolylinePoints()) {
+            <svg class="dash__line-chart" viewBox="0 0 400 100" preserveAspectRatio="none" aria-label="Latency trend">
+              <polyline
+                class="dash__line-chart-poly"
+                fill="none"
+                [attr.points]="latencyPolylinePoints()"
+              />
+            </svg>
+          } @else {
+            <p class="dash__empty dash__empty--chart">No timed requests in this range for the chart.</p>
+          }
+        </mat-card-content>
+      </mat-card>
+    }
+
+    <mat-card class="dash__table-card">
+      <mat-card-header>
+        <mat-card-title>Recent API calls</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="dash__table-wrap">
+          <table mat-table [dataSource]="d.last10Requests" class="dash__table">
+            <ng-container matColumnDef="executedAt">
+              <th mat-header-cell *matHeaderCellDef>Time (UTC)</th>
+              <td mat-cell *matCellDef="let row">{{ row.executedAt | date: 'medium' }}</td>
+            </ng-container>
+            <ng-container matColumnDef="apiName">
+              <th mat-header-cell *matHeaderCellDef>API</th>
+              <td mat-cell *matCellDef="let row">{{ row.apiName }}</td>
+            </ng-container>
+            <ng-container matColumnDef="httpStatus">
+              <th mat-header-cell *matHeaderCellDef>HTTP</th>
+              <td mat-cell *matCellDef="let row">
+                <span
+                  class="dash__status"
+                  [class.dash__status--ok]="row.httpStatus != null && row.httpStatus >= 200 && row.httpStatus < 300"
+                  >{{ row.httpStatus ?? '—' }}</span
+                >
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="durationMs">
+              <th mat-header-cell *matHeaderCellDef>Response time (ms)</th>
+              <td mat-cell *matCellDef="let row">
+                {{ row.durationMs != null ? row.durationMs + ' ms' : '—' }}
+              </td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+          </table>
+          @if (d.last10Requests.length === 0) {
+            <p class="dash__empty">No requests in this range.</p>
+          }
+        </div>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

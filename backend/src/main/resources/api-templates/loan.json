@@ -1,0 +1,90 @@
+{
+  "name": "Loan Application",
+  "apiCode": "loanApply",
+  "version": "v1",
+  "description": "Submit a retail loan application with amount, tenure, and purpose. Replace base URL with your lending gateway.",
+  "httpMethod": "POST",
+  "baseUrl": "https://lending.example.com",
+  "pathTemplate": "/v1/loans/apply",
+  "active": true,
+  "activitiesSequenceText": "- KYC and bureau checks\n- Eligibility engine\n- Create application record",
+  "additionalNotesText": "Rate limits may apply per customerId.",
+  "impactOnSystemText": "Creates loan application and may trigger credit workflows.",
+  "documentedHeaders": [],
+  "failureValidations": [
+    {
+      "validationMessage": "Customer not eligible",
+      "scenario": "Bureau score below threshold"
+    }
+  ],
+  "requestFields": [
+    {
+      "fieldKey": "customerId",
+      "dataType": "STRING",
+      "required": true,
+      "defaultValue": "CUST-0001",
+      "description": "Internal customer identifier",
+      "sortOrder": 0,
+      "children": []
+    },
+    {
+      "fieldKey": "loanAmount",
+      "dataType": "NUMBER",
+      "required": true,
+      "defaultValue": "250000",
+      "description": "Requested principal amount",
+      "sortOrder": 1,
+      "children": []
+    },
+    {
+      "fieldKey": "tenureMonths",
+      "dataType": "INTEGER",
+      "required": true,
+      "defaultValue": "24",
+      "description": "Repayment tenure in months",
+      "sortOrder": 2,
+      "children": []
+    },
+    {
+      "fieldKey": "purpose",
+      "dataType": "STRING",
+      "required": false,
+      "defaultValue": "HOME_IMPROVEMENT",
+      "description": "Loan purpose code or free text",
+      "sortOrder": 3,
+      "children": []
+    }
+  ],
+  "responseFields": [
+    {
+      "fieldKey": "applicationId",
+      "dataType": "STRING",
+      "description": "Unique application reference",
+      "sortOrder": 0,
+      "children": []
+    },
+    {
+      "fieldKey": "status",
+      "dataType": "STRING",
+      "description": "SUBMITTED | APPROVED | REJECTED",
+      "sortOrder": 1,
+      "children": []
+    },
+    {
+      "fieldKey": "interestRate",
+      "dataType": "NUMBER",
+      "description": "Annual rate if pre-approved (optional)",
+      "sortOrder": 2,
+      "children": []
+    }
+  ],
+  "failureResponseFields": [
+    {
+      "fieldKey": "rejectionReason",
+      "dataType": "STRING",
+      "description": "Why the application was rejected",
+      "sortOrder": 0,
+      "children": []
+    }
+  ]
+}

@@ -1,0 +1,99 @@
+.user-guide {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 56rem;
+  margin: 0 auto;
+  padding-bottom: 2rem;
+}
+
+.user-guide__hero mat-card-subtitle {
+  line-height: 1.45;
+}
+
+.user-guide__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+}
+
+.user-guide__toolbar-hint {
+  font-size: 0.875rem;
+  color: var(--mat-sys-on-surface-variant);
+  max-width: 36rem;
+  line-height: 1.4;
+}
+
+.user-guide__list {
+  margin: 0;
+  padding-left: 1.25rem;
+  line-height: 1.55;
+
+  li {
+    margin-bottom: 0.65rem;
+  }
+
+  code {
+    font-size: 0.9em;
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+    background: var(--mat-sys-surface-container-highest);
+  }
+}
+
+.user-guide__list--workflow li {
+  margin-bottom: 0.5rem;
+}
+
+.user-guide__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+
+  th,
+  td {
+    border: 1px solid var(--mat-sys-outline-variant);
+    padding: 0.6rem 0.75rem;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  th {
+    background: var(--mat-sys-surface-container-high);
+    font-weight: 600;
+  }
+
+  code {
+    font-size: 0.85em;
+  }
+}
+
+.user-guide__footer-note {
+  margin: 1rem 0 0;
+  font-size: 0.875rem;
+  color: var(--mat-sys-on-surface-variant);
+  line-height: 1.45;
+
+  code {
+    font-size: 0.9em;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .user-guide {
+    max-width: none;
+    padding: 0;
+  }
+
+  .user-guide mat-card {
+    break-inside: avoid;
+    box-shadow: none !important;
+    border: 1px solid #ccc !important;
+    margin-bottom: 0.75rem;
+  }
+}

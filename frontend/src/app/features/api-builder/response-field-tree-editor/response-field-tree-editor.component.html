@@ -1,0 +1,57 @@
+<div class="rtree" [class.rtree--nested]="depth > 0">
+  <div class="rtree__toolbar">
+    <button mat-stroked-button type="button" (click)="addField()">
+      <mat-icon>add</mat-icon>
+      Add field
+    </button>
+  </div>
+
+  @for (ctrl of fields.controls; track $index; let i = $index) {
+    <div class="rtree__node" [formGroup]="asGroup(ctrl)">
+      <div class="rtree__row">
+        <mat-form-field appearance="outline" class="rtree__field rtree__field--name">
+          <mat-label>Output parameter</mat-label>
+          <input matInput formControlName="fieldName" placeholder="e.g. status" />
+          @if (asGroup(ctrl).get('fieldName')?.hasError('required') && asGroup(ctrl).get('fieldName')?.touched) {
+            <mat-error>Required</mat-error>
+          }
+          @if (asGroup(ctrl).get('fieldName')?.hasError('maxlength')) {
+            <mat-error>Max 255 characters</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="rtree__field rtree__field--type">
+          <mat-label>Data type</mat-label>
+          <mat-select formControlName="dataType">
+            @for (t of dataTypes; track t) {
+              <mat-option [value]="t">{{ t }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="rtree__field rtree__field--desc">
+          <mat-label>Value description</mat-label>
+          <textarea
+            matInput
+            formControlName="description"
+            rows="2"
+            placeholder="What this field means in the response"
+            maxlength="4000"
+          ></textarea>
+        </mat-form-field>
+
+        <button mat-icon-button type="button" (click)="removeField(i)" aria-label="Remove field">
+          <mat-icon>delete_outline</mat-icon>
+        </button>
+      </div>
+
+      <div class="rtree__nested">
+        <div class="rtree__nested-head">
+          <span class="rtree__nested-label">Nested fields</span>
+          <span class="rtree__hint">Use OBJECT / ARRAY parents for nested JSON.</span>
+        </div>
+        <app-response-field-tree-editor [fields]="childrenAt(i)" [depth]="depth + 1" />
+      </div>
+    </div>
+  }
+</div>

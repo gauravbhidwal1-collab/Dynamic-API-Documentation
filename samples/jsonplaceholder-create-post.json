@@ -1,0 +1,61 @@
+{
+  "name": "Create post (JSONPlaceholder demo)",
+  "apiCode": "demo-jsonplaceholder-create-post",
+  "description": "Documented POST to https://jsonplaceholder.typicode.com/posts. Request body is flat JSON: title, body, userId. Try it from API Tester with an empty body to use defaults.",
+  "httpMethod": "POST",
+  "baseUrl": "https://jsonplaceholder.typicode.com",
+  "pathTemplate": "/posts",
+  "active": true,
+  "requestFields": [
+    {
+      "fieldKey": "title",
+      "dataType": "STRING",
+      "required": true,
+      "defaultValue": "Sample title from API doc",
+      "description": "Post title",
+      "sortOrder": 0
+    },
+    {
+      "fieldKey": "body",
+      "dataType": "STRING",
+      "required": true,
+      "defaultValue": "Body text documented in the platform",
+      "description": "Post body",
+      "sortOrder": 1
+    },
+    {
+      "fieldKey": "userId",
+      "dataType": "INTEGER",
+      "required": true,
+      "defaultValue": "1",
+      "description": "Author user id (integer)",
+      "sortOrder": 2
+    }
+  ],
+  "responseFields": [
+    {
+      "fieldKey": "id",
+      "dataType": "INTEGER",
+      "description": "New post id returned by server",
+      "sortOrder": 0
+    },
+    {
+      "fieldKey": "title",
+      "dataType": "STRING",
+      "description": "Echo of title",
+      "sortOrder": 1
+    },
+    {
+      "fieldKey": "body",
+      "dataType": "STRING",
+      "description": "Echo of body",
+      "sortOrder": 2
+    },
+    {
+      "fieldKey": "userId",
+      "dataType": "INTEGER",
+      "description": "Echo of userId",
+      "sortOrder": 3
+    }
+  ]
+}

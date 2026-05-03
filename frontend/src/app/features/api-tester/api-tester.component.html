@@ -1,0 +1,128 @@
+<mat-card appearance="outlined" class="app-page-card tester">
+  <mat-card-header>
+    <mat-card-title>API Tester</mat-card-title>
+    <mat-card-subtitle>Select an API, fill the generated payload, then validate or execute.</mat-card-subtitle>
+  </mat-card-header>
+  <mat-card-content>
+    @if (busy()) {
+      <mat-progress-bar mode="indeterminate" class="tester__bar" />
+    }
+    @if (listError(); as le) {
+      <p class="tester__banner tester__banner--error">{{ le }}</p>
+    }
+
+    <div class="tester__toolbar">
+      <mat-form-field appearance="outline" class="tester__select">
+        <mat-label>Select API</mat-label>
+        <mat-select
+          [value]="selectedApiId()"
+          [disabled]="listLoading()"
+          (selectionChange)="onApiSelectionChange($event.value)"
+        >
+          <mat-option [value]="null">— None —</mat-option>
+          @for (a of apis(); track a.id) {
+            <mat-option [value]="a.id"
+              >{{ a.name }} · {{ a.httpMethod }} · {{ a.version || '—' }} · #{{ a.id }}</mat-option
+            >
+          }
+        </mat-select>
+      </mat-form-field>
+      <button mat-stroked-button type="button" (click)="refreshApiList()" [disabled]="listLoading()">
+        <mat-icon>refresh</mat-icon>
+        Reload list
+      </button>
+    </div>
+
+    @if (listLoading()) {
+      <div class="app-loading-row">
+        <mat-progress-spinner diameter="36" mode="indeterminate" />
+        <span>Loading API list…</span>
+      </div>
+    }
+
+    @if (selectedApiId(); as apiId) {
+      @if (definitionLoading()) {
+        <div class="app-loading-row">
+          <mat-progress-spinner diameter="36" mode="indeterminate" />
+          <span>Loading definition #{{ apiId }}…</span>
+        </div>
+      } @else if (definitionError(); as de) {
+        <p class="tester__banner tester__banner--error">{{ de }}</p>
+      } @else if (payloadForm(); as pf) {
+        <p class="tester__meta">{{ selectedApiLabel() }}</p>
+
+        @if (requestFields().length === 0) {
+          <p class="tester__muted">This API has no request fields. The payload sent is an empty JSON object.</p>
+        }
+
+        <div class="tester__form">
+          <app-request-payload-editor [formGroup]="pf" [fields]="requestFields()" />
+        </div>
+
+        <div class="tester__actions">
+          <button
+            mat-flat-button
+            type="button"
+            color="primary"
+            [disabled]="busy()"
+            (click)="validate()"
+            matTooltip="Validate payload and resolve URL (no upstream call)"
+          >
+            <mat-icon>rule</mat-icon>
+            Validate (V)
+          </button>
+          <button
+            mat-flat-button
+            type="button"
+            color="accent"
+            [disabled]="busy()"
+            (click)="execute()"
+            matTooltip="Run configured upstream request"
+          >
+            <mat-icon>play_arrow</mat-icon>
+            Execute (P)
+          </button>
+          @if (busy()) {
+            <mat-progress-spinner diameter="28" mode="indeterminate" />
+          }
+        </div>
+      }
+    } @else {
+      <p class="tester__muted">Choose an API to generate inputs from its stored request schema.</p>
+    }
+
+    @if (errorMessage(); as err) {
+      <section class="tester__panel tester__panel--error" aria-live="polite">
+        <h3 class="tester__panel-title">Error</h3>
+        <pre class="tester__pre">{{ err }}</pre>
+      </section>
+    }
+
+    @if (validationResult(); as vr) {
+      <section class="tester__panel tester__panel--ok" aria-live="polite">
+        <h3 class="tester__panel-title">Validation (V)</h3>
+        <p class="tester__label">Resolved URL</p>
+        <pre class="tester__pre tester__pre--url">{{ vr.resolvedUrl }}</pre>
+        <p class="tester__label">Merged request JSON</p>
+        <pre class="tester__pre">{{ formatJsonBlock(vr.mergedRequestJson) }}</pre>
+      </section>
+    }
+
+    @if (executionResult(); as er) {
+      <section class="tester__panel" aria-live="polite">
+        <h3 class="tester__panel-title">Execution (P)</h3>
+        @if (er.logId != null) {
+          <p class="tester__muted">Log id: <strong>{{ er.logId }}</strong></p>
+        }
+        <p class="tester__label">Upstream HTTP status</p>
+        <pre class="tester__pre">{{ er.upstreamHttpStatus ?? '—' }} · received: {{ er.upstreamResponseReceived }}</pre>
+        @if (er.transportError) {
+          <p class="tester__label">Transport</p>
+          <pre class="tester__pre tester__panel--warn">{{ er.transportError }}</pre>
+        }
+        <p class="tester__label">Response body</p>
+        <pre class="tester__pre">{{ formatResponseBody(er.responseBody) }}</pre>
+      </section>
+    }
+  </mat-card-content>
+</mat-card>

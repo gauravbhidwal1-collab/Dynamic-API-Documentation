@@ -1,0 +1,414 @@
+<div class="builder-page" [class.builder-page--aside-max]="previewMaximized()">
+  <div class="builder-page__main">
+<mat-card appearance="outlined" class="app-page-card">
+  <mat-card-header>
+    <mat-card-title>{{ editId() ? 'Edit API' : 'API Builder' }}</mat-card-title>
+    <mat-card-subtitle>
+      @if (editId(); as eid) {
+        Editing definition #{{ eid }} @if (form.get('version')?.value) {
+          · version {{ form.get('version')?.value }}
+        }
+        . Fields align with generated PDF sections (purpose, endpoint, request/response body).
+      } @else {
+        Define purpose, endpoint, request JSON schema, and documented response shape — then save to the backend.
+      }
+    </mat-card-subtitle>
+    @if (editId()) {
+      <div class="builder__version-row">
+        <mat-form-field appearance="outline" class="builder__version-select">
+          <mat-label>Version</mat-label>
+          <mat-select
+            [value]="form.get('version')?.value"
+            (selectionChange)="onVersionSelected($event.value)"
+          >
+            @for (v of versionOptions(); track v.id) {
+              <mat-option [value]="v.version">{{ v.version }} @if (v.latest) { (latest) }</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <button mat-stroked-button type="button" (click)="openCloneNewVersion()">
+          <mat-icon>add</mat-icon>
+          New version
+        </button>
+        <span class="builder__export-gap" aria-hidden="true"></span>
+        <button mat-icon-button type="button" matTooltip="Download JSON" (click)="downloadExportJson()">
+          <mat-icon>description</mat-icon>
+        </button>
+        <button mat-icon-button type="button" matTooltip="Download PDF" (click)="downloadExportPdf()">
+          <mat-icon>picture_as_pdf</mat-icon>
+        </button>
+        <button mat-icon-button type="button" matTooltip="Copy cURL" (click)="copyExportCurl()">
+          <mat-icon>terminal</mat-icon>
+        </button>
+      </div>
+    }
+  </mat-card-header>
+
+  <mat-card-content class="builder__content">
+    @if (!editId()) {
+      <div class="builder__template-row">
+        <mat-form-field appearance="outline" class="builder__template-field">
+          <mat-label>Start from template</mat-label>
+          <mat-select
+            [value]="templateSelectId()"
+            (selectionChange)="onTemplateSelected($event.value)"
+          >
+            <mat-option [value]="null">— None —</mat-option>
+            @for (t of templateOptions(); track t.id) {
+              <mat-option [value]="t.id">{{ t.name }}</mat-option>
+            }
+          </mat-select>
+          <mat-hint>Fills the form below; save to persist a new API.</mat-hint>
+        </mat-form-field>
+      </div>
+    }
+    @if (loadingEdit()) {
+      <div class="builder__overlay" aria-busy="true" aria-live="polite">
+        <mat-progress-spinner diameter="44" mode="indeterminate" />
+        <span class="builder__overlay-text">Loading definition…</span>
+      </div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="builder">
+      <section class="builder__section">
+        <h3 class="builder__section-title">API identity &amp; endpoint</h3>
+        <p class="builder__lead">
+          Same metadata as in the exported PDF: name, API code, HTTP method, base URL, path template, and active flag.
+        </p>
+        <div class="builder__grid">
+          <mat-form-field appearance="outline" class="builder__full">
+            <mat-label>API name</mat-label>
+            <input matInput formControlName="apiName" placeholder="e.g. Top-Up API" maxlength="256" />
+            @if (form.get('apiName')?.hasError('required') && form.get('apiName')?.touched) {
+              <mat-error>Required</mat-error>
+            }
+            @if (form.get('apiName')?.hasError('maxlength')) {
+              <mat-error>Max 256 characters</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="builder__grow">
+            <mat-label>API code (convention)</mat-label>
+            <input matInput formControlName="apiCode" placeholder="e.g. topUpAPI" maxlength="128" />
+            <mat-hint>Shown in PDF. Leave empty to auto-generate from API name.</mat-hint>
+            @if (form.get('apiCode')?.hasError('maxlength')) {
+              <mat-error>Max 128 characters</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="builder__grow">
+            <mat-label>URL (base)</mat-label>
+            <input matInput formControlName="baseUrl" placeholder="https://api.example.com" />
+            <mat-hint align="end">{{ form.get('baseUrl')?.value?.length ?? 0 }} / 2048</mat-hint>
+            @if (form.get('baseUrl')?.hasError('required') && form.get('baseUrl')?.touched) {
+              <mat-error>Required</mat-error>
+            }
+            @if (form.get('baseUrl')?.hasError('maxlength')) {
+              <mat-error>Max 2048 characters</mat-error>
+            }
+            @if (form.get('baseUrl')?.hasError('httpUrl') && form.get('baseUrl')?.touched) {
+              <mat-error>Enter a valid http(s) URL</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="builder__path">
+            <mat-label>Path template (optional)</mat-label>
+            <input matInput formControlName="pathTemplate" placeholder="/v1/users/{userId}" />
+            @if (form.get('pathTemplate')?.hasError('maxlength')) {
+              <mat-error>Max 2048 characters</mat-error>
+            }
+            @if (form.get('pathTemplate')?.hasError('pathSlash') && form.get('pathTemplate')?.touched) {
+              <mat-error>Path should start with /</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="builder__method">
+            <mat-label>HTTP method</mat-label>
+            <mat-select formControlName="httpMethod">
+              @for (m of httpMethods; track m) {
+                <mat-option [value]="m">{{ m }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <div class="builder__active">
+            <mat-slide-toggle formControlName="active">Active</mat-slide-toggle>
+          </div>
+        </div>
+      </section>
+
+      <section class="builder__section">
+        <h3 class="builder__section-title">Purpose</h3>
+        <p class="builder__lead">
+          Narrative for stakeholders — appears as <strong>Purpose</strong> in the PDF (multiple paragraphs supported;
+          use line breaks).
+        </p>
+        <mat-form-field appearance="outline" class="builder__full-width-field">
+          <mat-label>Purpose / description</mat-label>
+          <textarea
+            matInput
+            formControlName="description"
+            rows="6"
+            placeholder="What this API does, when to use it, important notes…"
+            maxlength="4000"
+          ></textarea>
+          <mat-hint align="end">{{ form.get('description')?.value?.length ?? 0 }} / 4000</mat-hint>
+          @if (form.get('description')?.hasError('maxlength')) {
+            <mat-error>Max 4000 characters</mat-error>
+          }
+        </mat-form-field>
+        <p class="builder__format-hint">
+          Formatting in PDF:
+          <strong>**bold**</strong>, <em>*italic*</em>, <span class="builder__ul">__underline__</span>, list lines with
+          <code>- </code> or <code>• </code>, arrows as <code>→</code>.
+        </p>
+      </section>
+
+      <section class="builder__section">
+        <h3 class="builder__section-title">Sequenced activities</h3>
+        <p class="builder__lead">
+          Shown after Purpose in the PDF, with a fixed intro line and your numbered or bulleted steps below.
+        </p>
+        <mat-form-field appearance="outline" class="builder__full-width-field">
+          <mat-label>Activities (sequence)</mat-label>
+          <textarea
+            matInput
+            formControlName="activitiesSequenceText"
+            rows="5"
+            placeholder="1. Validate input&#10;2. Call downstream…"
+            maxlength="8000"
+          ></textarea>
+          <mat-hint align="end">{{ form.get('activitiesSequenceText')?.value?.length ?? 0 }} / 8000</mat-hint>
+        </mat-form-field>
+      </section>
+
+      <section class="builder__section">
+        <h3 class="builder__section-title">Note</h3>
+        <p class="builder__lead">Additional notes (e.g. extra fields disclaimer) — appears as <strong>Note</strong> in the PDF.</p>
+        <mat-form-field appearance="outline" class="builder__full-width-field">
+          <mat-label>Note</mat-label>
+          <textarea matInput formControlName="additionalNotesText" rows="4" maxlength="8000"></textarea>
+          <mat-hint align="end">{{ form.get('additionalNotesText')?.value?.length ?? 0 }} / 8000</mat-hint>
+        </mat-form-field>
+      </section>
+
+      <section class="builder__section">
+        <h3 class="builder__section-title">Impact on the system</h3>
+        <p class="builder__lead">Downstream / system impact narrative for readers.</p>
+        <mat-form-field appearance="outline" class="builder__full-width-field">
+          <mat-label>Impact</mat-label>
+          <textarea matInput formControlName="impactOnSystemText" rows="4" maxlength="8000"></textarea>
+          <mat-hint align="end">{{ form.get('impactOnSystemText')?.value?.length ?? 0 }} / 8000</mat-hint>
+        </mat-form-field>
+      </section>
+
+      <section class="builder__section">
+        <h3 class="builder__section-title">Documented API headers</h3>
+        <p class="builder__lead">
+          Listed in the PDF under <strong>DOCUMENTED API HEADERS</strong> (in addition to the standard Accept /
+          Content-Type reference table).
+        </p>
+        <div class="builder__header-actions">
+          <button mat-stroked-button type="button" (click)="addDocumentedHeaderRow()">Add header row</button>
+        </div>
+        @for (row of documentedHeaders.controls; track $index) {
+          <div class="builder__header-row" [formGroup]="$any(row)">
+            <mat-form-field appearance="outline" class="builder__header-key">
+              <mat-label>Header name</mat-label>
+              <input matInput formControlName="headerKey" maxlength="256" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="builder__header-val">
+              <mat-label>Example value</mat-label>
+              <input matInput formControlName="headerValue" maxlength="2048" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="builder__header-desc">
+              <mat-label>Description</mat-label>
+              <input matInput formControlName="description" maxlength="4000" />
+            </mat-form-field>
+            <button
+              mat-icon-button
+              type="button"
+              class="builder__header-remove"
+              (click)="removeDocumentedHeaderRow($index)"
+              aria-label="Remove header row"
+            >
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+        }
+      </section>
+
+      <section class="builder__section">
+        <h3 class="builder__section-title">Validations (failure reason)</h3>
+        <p class="builder__lead">
+          Per-API business validations: each row is a <strong>validation message</strong> (what the API returns or
+          reports) and the <strong>scenario</strong> (when it applies). Rendered in the PDF as table
+          <strong>VALIDATIONS (FAILURE REASON)</strong> with columns <em>Validation message</em> and
+          <em>Scenario</em>.
+        </p>
+        <div class="builder__header-actions">
+          <button mat-stroked-button type="button" (click)="addFailureValidationRow()">Add validation row</button>
+        </div>
+        @for (row of failureValidations.controls; track $index) {
+          <div class="builder__validation-row" [formGroup]="$any(row)">
+            <mat-form-field appearance="outline" class="builder__validation-msg">
+              <mat-label>Validation message</mat-label>
+              <textarea matInput formControlName="validationMessage" rows="2" maxlength="2048"></textarea>
+              <mat-hint align="end">{{ $any(row).get('validationMessage')?.value?.length ?? 0 }} / 2048</mat-hint>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="builder__validation-scenario">
+              <mat-label>Scenario</mat-label>
+              <textarea matInput formControlName="scenario" rows="3" maxlength="8000"></textarea>
+              <mat-hint align="end">{{ $any(row).get('scenario')?.value?.length ?? 0 }} / 8000</mat-hint>
+            </mat-form-field>
+            <button
+              mat-icon-button
+              type="button"
+              class="builder__validation-remove"
+              (click)="removeFailureValidationRow($index)"
+              aria-label="Remove validation row"
+            >
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+        }
+      </section>
+
+      <div class="builder__attrs mat-elevation-z1">
+        <h4 class="builder__attrs-title">Documentation preview (read-only)</h4>
+        <p class="builder__attrs-lead">Mirrors PDF “Attributes” / endpoint summary.</p>
+        <dl class="builder__attrs-dl">
+          <dt>Full endpoint URL</dt>
+          <dd>{{ fullEndpointPreview() }}</dd>
+          <dt>HTTP method</dt>
+          <dd>{{ form.get('httpMethod')?.value || '—' }}</dd>
+          <dt>Active</dt>
+          <dd>{{ form.get('active')?.value ? 'Yes' : 'No' }}</dd>
+        </dl>
+      </div>
+
+      <mat-divider />
+
+      <section class="builder__section">
+        <h3 class="builder__section-title">Request body</h3>
+        <p class="builder__lead">
+          Maps to PDF <strong>REQUEST BODY</strong>: input parameter, data type, value description, mandatory flag, and
+          sample/default for tests. Nest fields under <strong>OBJECT</strong> or <strong>ARRAY</strong>.
+        </p>
+        <div class="builder__import-actions">
+          <button mat-stroked-button type="button" (click)="openImportRequestJson()">Import from JSON object</button>
+        </div>
+        @if (requestFields.length === 0) {
+          <p class="builder__hint builder__hint--spaced">No fields yet — click <strong>Add field</strong> below.</p>
+        }
+        <app-field-tree-editor [fields]="requestFields" />
+      </section>
+
+      <mat-divider />
+
+      <section class="builder__section">
+        <h3 class="builder__section-title">Success response body</h3>
+        <p class="builder__lead">
+          Maps to PDF <strong>RESPONSE BODY (SUCCESS)</strong> and the green-tinted sample JSON. Use for normal / 2xx
+          payloads.
+        </p>
+        <div class="builder__import-actions">
+          <button mat-stroked-button type="button" (click)="openImportResponseJson()">Import from JSON object</button>
+        </div>
+        @if (responseFields.length === 0) {
+          <p class="builder__hint builder__hint--spaced">Optional — add fields to describe the success JSON shape.</p>
+        }
+        <app-response-field-tree-editor [fields]="responseFields" />
+      </section>
+
+      <mat-divider />
+
+      <section class="builder__section">
+        <h3 class="builder__section-title">Failure / error response body</h3>
+        <p class="builder__lead">
+          Maps to PDF <strong>RESPONSE BODY (FAILURE / ERROR)</strong> and the separate red-tinted sample JSON (e.g.
+          <code>code</code>, <code>message</code>, validation errors).
+        </p>
+        <div class="builder__import-actions">
+          <button mat-stroked-button type="button" (click)="openImportFailureResponseJson()">
+            Import from JSON object
+          </button>
+        </div>
+        @if (failureResponseFields.length === 0) {
+          <p class="builder__hint builder__hint--spaced">
+            Optional — document error payloads separately from the success body.
+          </p>
+        }
+        <app-response-field-tree-editor [fields]="failureResponseFields" />
+      </section>
+
+      <mat-card-actions align="end" class="builder__actions">
+        <button mat-flat-button color="primary" type="submit" class="builder__submit" [disabled]="saving() || loadingEdit()">
+          @if (saving()) {
+            <span class="app-loading-inline">
+              <mat-progress-spinner diameter="20" mode="indeterminate" />
+              <span>Saving…</span>
+            </span>
+          } @else if (editId()) {
+            <span>Update backend</span>
+          } @else {
+            <span>Save to backend</span>
+          }
+        </button>
+      </mat-card-actions>
+    </form>
+  </mat-card-content>
+</mat-card>
+  </div>
+
+  <aside class="builder-page__aside" aria-label="PDF documentation preview">
+    <mat-card appearance="outlined" class="builder-preview-card">
+      <mat-card-header class="builder-preview__header-row">
+        <div>
+          <mat-card-title>PDF preview</mat-card-title>
+          <mat-card-subtitle>
+            Press <strong>View PDF</strong> to render — same generator as download. Use maximize for a larger pane.
+          </mat-card-subtitle>
+        </div>
+        <div class="builder-preview__toolbar">
+          <mat-checkbox
+            [checked]="previewCompact()"
+            (change)="previewCompact.set($event.checked)"
+            class="builder-preview__compact"
+          >
+            Compact fonts
+          </mat-checkbox>
+          <button mat-flat-button color="primary" type="button" (click)="viewPdf()" [disabled]="pdfPreviewLoading()">
+            View PDF
+          </button>
+          <button
+            mat-stroked-button
+            type="button"
+            (click)="togglePreviewMaximized()"
+            [attr.aria-pressed]="previewMaximized()"
+          >
+            @if (previewMaximized()) {
+              <span>Restore layout</span>
+            } @else {
+              <span>Maximize</span>
+            }
+          </button>
+        </div>
+      </mat-card-header>
+      <mat-card-content class="builder-preview__body">
+        @if (pdfPreviewLoading()) {
+          <div class="builder-preview__loading">
+            <mat-progress-spinner diameter="36" mode="indeterminate" />
+            <span>Generating PDF…</span>
+          </div>
+        } @else if (pdfPreviewError(); as pe) {
+          <p class="builder-preview__error">{{ pe }}</p>
+        } @else if (pdfPreviewUrl(); as src) {
+          <iframe class="builder-preview__iframe" title="API documentation PDF preview" [src]="src"></iframe>
+        } @else {
+          <p class="builder-preview__placeholder">Click <strong>View PDF</strong> to see the current draft.</p>
+        }
+      </mat-card-content>
+    </mat-card>
+  </aside>
+</div>

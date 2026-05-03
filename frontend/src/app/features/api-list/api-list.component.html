@@ -1,0 +1,143 @@
+<mat-card appearance="outlined" class="app-page-card">
+  <mat-card-header>
+    <mat-card-title>APIs</mat-card-title>
+    <mat-card-subtitle>Search, filter, and manage definitions from the backend.</mat-card-subtitle>
+  </mat-card-header>
+
+  <mat-card-content class="list">
+    @if (loadError(); as err) {
+      <p class="list__banner list__banner--error">{{ err }}</p>
+      <button mat-flat-button type="button" color="primary" (click)="refresh()">Retry</button>
+    }
+
+    <div class="list__filters" [formGroup]="filterForm">
+      <mat-form-field appearance="outline" class="list__search">
+        <mat-label>Search</mat-label>
+        <input matInput formControlName="search" placeholder="Name, code, URL, method" maxlength="512" />
+        <mat-icon matSuffix>search</mat-icon>
+        <mat-hint align="end">{{ filterForm.controls.search.value.length }} / 512</mat-hint>
+        @if (filterForm.controls.search.hasError('maxlength')) {
+          <mat-error>Search is too long</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Status</mat-label>
+        <mat-select [value]="statusFilter()" (selectionChange)="onStatusFilterChange($event.value)">
+          <mat-option value="all">All</mat-option>
+          <mat-option value="active">Active</mat-option>
+          <mat-option value="inactive">Inactive</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>HTTP method</mat-label>
+        <mat-select [value]="methodFilter()" (selectionChange)="methodFilter.set($event.value)">
+          @for (m of methodOptions; track m) {
+            <mat-option [value]="m">{{ m }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <button mat-stroked-button type="button" (click)="refresh()" [disabled]="loading()">
+        @if (loading()) {
+          <mat-progress-spinner diameter="18" mode="indeterminate" />
+        } @else {
+          <mat-icon>refresh</mat-icon>
+        }
+        Refresh
+      </button>
+    </div>
+
+    <mat-divider />
+
+    @if (loading()) {
+      <div class="app-loading-row" aria-busy="true" aria-live="polite">
+        <mat-progress-spinner diameter="40" mode="indeterminate" />
+        <span>Loading APIs…</span>
+      </div>
+    } @else {
+      <div class="list__table-wrap mat-elevation-z2">
+        <table mat-table [dataSource]="filteredApis()" class="list__table">
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef>Name</th>
+            <td mat-cell *matCellDef="let row">{{ row.name }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="version">
+            <th mat-header-cell *matHeaderCellDef>Version</th>
+            <td mat-cell *matCellDef="let row">{{ row.version || '—' }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="apiCode">
+            <th mat-header-cell *matHeaderCellDef>Code</th>
+            <td mat-cell *matCellDef="let row">{{ row.apiCode || '—' }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="httpMethod">
+            <th mat-header-cell *matHeaderCellDef>Method</th>
+            <td mat-cell *matCellDef="let row">
+              <span class="list__method">{{ row.httpMethod }}</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="baseUrl">
+            <th mat-header-cell *matHeaderCellDef>Base URL</th>
+            <td mat-cell *matCellDef="let row" class="list__url">{{ row.baseUrl }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="active">
+            <th mat-header-cell *matHeaderCellDef>Active</th>
+            <td mat-cell *matCellDef="let row">
+              @if (row.active !== false) {
+                <mat-icon class="list__active-yes">check_circle</mat-icon>
+              } @else {
+                <mat-icon class="list__active-no">cancel</mat-icon>
+              }
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="updatedAt">
+            <th mat-header-cell *matHeaderCellDef>Updated</th>
+            <td mat-cell *matCellDef="let row">{{ row.updatedAt | date: 'medium' }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef class="list__actions-col">Actions</th>
+            <td mat-cell *matCellDef="let row" class="list__actions-col">
+              <div class="list__actions">
+                <button mat-icon-button type="button" matTooltip="View" (click)="view(row)">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                <button mat-icon-button type="button" matTooltip="Edit" (click)="edit(row)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button type="button" matTooltip="Test" (click)="test(row)">
+                  <mat-icon>play_arrow</mat-icon>
+                </button>
+                <button mat-icon-button type="button" matTooltip="Download JSON" (click)="downloadJson(row)">
+                  <mat-icon>description</mat-icon>
+                </button>
+                <button mat-icon-button type="button" matTooltip="Download PDF" (click)="downloadPdf(row)">
+                  <mat-icon>picture_as_pdf</mat-icon>
+                </button>
+                <button mat-icon-button type="button" matTooltip="Copy cURL" (click)="copyCurl(row)">
+                  <mat-icon>terminal</mat-icon>
+                </button>
+                <button mat-icon-button type="button" matTooltip="Delete" color="warn" (click)="delete(row)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        </table>
+        @if (filteredApis().length === 0) {
+          <p class="list__empty">No APIs match the current filters.</p>
+        }
+      </div>
+    }
+  </mat-card-content>
+</mat-card>

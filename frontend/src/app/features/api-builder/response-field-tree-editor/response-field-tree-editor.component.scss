@@ -1,0 +1,70 @@
+.rtree {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.rtree--nested {
+  padding: 0.75rem 0 0.25rem 1rem;
+  margin-top: 0.25rem;
+  border-left: 2px solid var(--mat-sys-outline-variant);
+}
+
+.rtree__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.rtree__node {
+  padding: 0.75rem;
+  border-radius: 8px;
+  background-color: color-mix(in srgb, var(--mat-sys-surface-container-high) 90%, transparent);
+}
+
+.rtree__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.rtree__field {
+  flex: 1 1 140px;
+  min-width: 120px;
+}
+
+.rtree__field--name {
+  flex: 2 1 180px;
+}
+
+.rtree__field--type {
+  flex: 1 1 140px;
+  max-width: 200px;
+}
+
+.rtree__field--desc {
+  flex: 3 1 240px;
+  min-width: 180px;
+}
+
+.rtree__nested {
+  margin-top: 0.75rem;
+}
+
+.rtree__nested-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.rtree__nested-label {
+  font: var(--mat-sys-label-large);
+}
+
+.rtree__hint {
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+}
