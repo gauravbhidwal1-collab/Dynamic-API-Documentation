@@ -1,18 +1,20 @@
 # Build stage
 FROM maven:3.8.5-openjdk-8 AS build
 
-WORKDIR /app
+WORKDIR /build
 
-COPY . .
+COPY backend/pom.xml .
+RUN mvn -q -e -DskipTests dependency:go-offline
 
-RUN mvn clean package -DskipTests
+COPY backend/src ./src
+RUN mvn -q -DskipTests package
 
 # Run stage
-FROM openjdk:8-jdk-alpine
+FROM eclipse-temurin:8-jdk
 
 WORKDIR /app
 
-COPY --from=build /app/target/apiDocBackendApis.jar app.jar
+COPY --from=build /build/target/apiDocBackendApis.jar app.jar
 
 EXPOSE 8080
 
